@@ -7,6 +7,7 @@
 </h3>
 
 <p align="center">
+  <a href="https://reactnative.gallery"><img src="https://img.shields.io/badge/reactnative.gallery-%E2%99%A5-red.svg"></a>
   <a href="https://www.npmjs.com/package/react-native-country-picker-modal"><img src="https://img.shields.io/npm/v/react-native-country-picker-modal.svg?style=flat-square"></a>
   <a href="https://www.npmjs.com/package/react-native-country-picker-modal"><img src="https://img.shields.io/npm/dm/react-native-country-picker-modal.svg?style=flat-square"></a>
   <a href="https://codecov.io/gh/xcarpentier/react-native-country-picker-modal"><img src="https://codecov.io/gh/xcarpentier/react-native-country-picker-modal/coverage.svg"></a>
@@ -22,11 +23,13 @@
 <br />
 
 ## Installation
+
 ```bash
 $ yarn add react-native-country-picker-modal
 ```
 
 ## Basic Usage
+
 ```jsx
 import DeviceInfo from 'react-native-device-info'
 
@@ -136,10 +139,23 @@ AppRegistry.registerComponent('example', () => Example)
 | autoFocusFilter   | bool     | true                                                                                                         | Whether or not the search bar should be autofocused                                                                                   |
 | styles            | object   | {}                                                                                                           | Override any style specified in the component (see source code)                                                                       |
 | disabled          | bool     | false                                                                                                        | Whether or not the Country Picker onPress is disabled                                                                                 |
-| tranparent        | bool     | false                                                                                                        | If true, the CountryPicker will render the modal over a transparent background                                                        |                                                                                                              
+| transparent        | bool     | false                                                                                                        | If true, the CountryPicker will render the modal over a transparent background                                                        |
 | animationType     | string   |'none'                                                                                                        | The handler that controls how the modal animates                                                                                      |
 | closeButtonImage  | React.element| default close button Image                                                                               | Custom close button Image
+| flagType  | string | 'emoji' on iOS, 'flat' on Android | If set, overwrites the default OS based flag type.
+| hideAlphabetFilter  | bool | false | If set to true, prevents the alphabet filter rendering
+| renderFilter  | Function | undefined | If 'filterable={true}' and renderFilter function is provided, render custom filter component.\*
 
+\* 
+```js
+renderFilter = ({value, onChange, onClose}) => (
+  <CustomFilterComponent
+     value={value}
+     onChange={onChange}
+     onClose={onClose} 
+   />
+)
+```
 ## Dependencies
 
 * world-countries : https://www.npmjs.com/package/world-countries
@@ -156,7 +172,13 @@ YES : It used the world-countries package and image is stored into json and base
 
 ## Tiers lib using this lib
 
-https://github.com/joinspontaneous/react-native-phone-verification
+* [react-native-phone-verification](https://github.com/joinspontaneous/react-native-phone-verification)
+
+[> Your project?](https://github.com/xcarpentier/react-native-linkedin/issues/new)
+
+## See also
+
+* [react-native-linkedin](https://github.com/xcarpentier/react-native-linkedin)
 
 ## Contribution
 

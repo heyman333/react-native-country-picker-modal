@@ -1,4 +1,5 @@
 // @flow
+/* eslint import/newline-after-import: 0 */
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
@@ -28,21 +29,33 @@ let countries = null
 let Emoji = null
 let styles = {}
 
-const isEmojiable = Platform.OS === 'ios'
+let isEmojiable = Platform.OS === 'ios'
 
-if (isEmojiable) {
-  countries = require('../data/countries-emoji')
-  Emoji = require('./emoji').default
-} else {
-  countries = require('../data/countries')
-
-  Emoji = <View />
+const FLAG_TYPES = {
+  flat: 'flat',
+  emoji: 'emoji'
 }
+
+const setCountries = flagType => {
+  if (typeof flagType !== 'undefined') {
+    isEmojiable = flagType === FLAG_TYPES.emoji
+  }
+
+  if (isEmojiable) {
+    countries = require('../data/countries-emoji')
+    Emoji = require('./emoji').default
+  } else {
+    countries = require('../data/countries')
+    Emoji = <View />
+  }
+}
+
+const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
+
+setCountries()
 
 export const getAllCountries = () =>
   cca2List.map(cca2 => ({ ...countries[cca2], cca2 }))
-
-const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 })
 
 export default class CountryPicker extends Component {
   static propTypes = {
@@ -63,7 +76,10 @@ export default class CountryPicker extends Component {
     filterPlaceholderTextColor: PropTypes.string,
     closeButtonImage: PropTypes.element,
     transparent: PropTypes.bool,
-    animationType: PropTypes.oneOf(['slide','fade','none'])
+    animationType: PropTypes.oneOf(['slide', 'fade', 'none']),
+    flagType: PropTypes.oneOf(Object.values(FLAG_TYPES)),
+    hideAlphabetFilter: PropTypes.bool,
+    renderFilter: PropTypes.func
   }
 
   static defaultProps = {
@@ -78,7 +94,7 @@ export default class CountryPicker extends Component {
 
   static renderEmojiFlag(cca2, emojiStyle) {
     return (
-      <Text style={[styles.emojiFlag, emojiStyle]}>
+      <Text style={[styles.emojiFlag, emojiStyle]} allowFontScaling={false}>
         {cca2 !== '' && countries[cca2.toUpperCase()] ? (
           <Emoji name={countries[cca2.toUpperCase()].flag} />
         ) : null}
@@ -109,6 +125,7 @@ export default class CountryPicker extends Component {
     super(props)
     this.openModal = this.openModal.bind(this)
 
+    setCountries(props.flagType)
     let countryList = [...props.countryList]
     const excludeCountries = [...props.excludeCountries]
 
@@ -195,7 +212,7 @@ export default class CountryPicker extends Component {
     })
   }
 
-  onClose() {
+  onClose = () => {
     this.setState({
       modalVisible: false,
       filter: '',
@@ -292,7 +309,9 @@ export default class CountryPicker extends Component {
         activeOpacity={0.6}
       >
         <View style={styles.letter}>
-          <Text style={styles.letterText}>{letter}</Text>
+          <Text style={styles.letterText} allowFontScaling={false}>
+            {letter}
+          </Text>
         </View>
       </TouchableOpacity>
     )
@@ -304,9 +323,38 @@ export default class CountryPicker extends Component {
       <View style={styles.itemCountry}>
         {CountryPicker.renderFlag(cca2)}
         <View style={styles.itemCountryName}>
-          <Text style={styles.countryName}>{this.getCountryName(country)}</Text>
+          <Text style={styles.countryName} allowFontScaling={false}>
+            {this.getCountryName(country)}
+          </Text>
         </View>
       </View>
+    )
+  }
+
+  renderFilter = () => {
+    const {
+      renderFilter,
+      autoFocusFilter,
+      filterPlaceholder,
+      filterPlaceholderTextColor
+    } = this.props
+
+    const value = this.state.filter
+    const onChange = this.handleFilterChange
+    const onClose = this.onClose
+
+    return renderFilter ? (
+      renderFilter({ value, onChange, onClose })
+    ) : (
+      <TextInput
+        autoFocus={autoFocusFilter}
+        autoCorrect={false}
+        placeholder={filterPlaceholder}
+        placeholderTextColor={filterPlaceholderTextColor}
+        style={[styles.input, !this.props.closeable && styles.inputOnly]}
+        onChangeText={onChange}
+        value={value}
+      />
     )
   }
 
@@ -343,20 +391,7 @@ export default class CountryPicker extends Component {
                   onPress={() => this.onClose()}
                 />
               )}
-              {this.props.filterable && (
-                <TextInput
-                  autoFocus={this.props.autoFocusFilter}
-                  autoCorrect={false}
-                  placeholder={this.props.filterPlaceholder}
-                  placeholderTextColor={this.props.filterPlaceholderTextColor}
-                  style={[
-                    styles.input,
-                    !this.props.closeable && styles.inputOnly
-                  ]}
-                  onChangeText={this.handleFilterChange}
-                  value={this.state.filter}
-                />
-              )}
+              {this.props.filterable && this.renderFilter()}
             </View>
             <KeyboardAvoidingView behavior="padding">
               <View style={styles.contentContainer}>
@@ -372,15 +407,17 @@ export default class CountryPicker extends Component {
                     this.setVisibleListHeight(offset)
                   }
                 />
-                <ScrollView
-                  contentContainerStyle={styles.letters}
-                  keyboardShouldPersistTaps="always"
-                >
-                  {this.state.filter === '' &&
-                    this.state.letters.map((letter, index) =>
-                      this.renderLetters(letter, index)
-                    )}
-                </ScrollView>
+                {!this.props.hideAlphabetFilter && (
+                  <ScrollView
+                    contentContainerStyle={styles.letters}
+                    keyboardShouldPersistTaps="always"
+                  >
+                    {this.state.filter === '' &&
+                      this.state.letters.map((letter, index) =>
+                        this.renderLetters(letter, index)
+                      )}
+                  </ScrollView>
+                )}
               </View>
             </KeyboardAvoidingView>
           </View>
